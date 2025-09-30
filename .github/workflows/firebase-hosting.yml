@@ -25,10 +25,13 @@ jobs:
           if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" ]; then
             echo "::error::Missing GitHub secret FIREBASE_SERVICE_ACCOUNT_JSON"; exit 1;
           fi
+          # Write JSON to $HOME/firebase-sa.json
           printf "%s" '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > "$HOME/firebase-sa.json"
+          # Quick sanity checks
           grep -q '"client_email"' "$HOME/firebase-sa.json" || { echo "::error::client_email missing in service account JSON"; exit 1; }
           grep -q '"project_id"' "$HOME/firebase-sa.json" || { echo "::error::project_id missing in service account JSON"; exit 1; }
-          echo "Service account JSON present."
+          echo "Service account JSON present at: $HOME/firebase-sa.json"
+          ls -l "$HOME/firebase-sa.json"
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -50,15 +53,19 @@ jobs:
           firebase --version
 
       - name: List Hosting sites in target project (must include TARGET_SITE)
+        shell: bash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.HOME }}/firebase-sa.json
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/firebase-sa.json
         run: |
           echo "Listing Hosting sites for project: $TARGET_PROJECT"
           firebase hosting:sites:list --project "$TARGET_PROJECT" --json || true
 
       - name: Deploy to Firebase Hosting (debug)
+        shell: bash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.HOME }}/firebase-sa.json
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/firebase-sa.json
         run: |
+          echo "Using GOOGLE_APPLICATION_CREDENTIALS at: $GOOGLE_APPLICATION_CREDENTIALS"
+          ls -l "$GOOGLE_APPLICATION_CREDENTIALS" || { echo "::error::Service account file not found"; exit 1; }
           echo "Deploying site '$TARGET_SITE' to project '$TARGET_PROJECT'..."
           firebase deploy --only "hosting:${TARGET_SITE}" --project "${TARGET_PROJECT}" --non-interactive --debug
