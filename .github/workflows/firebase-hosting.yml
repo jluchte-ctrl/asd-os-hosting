@@ -25,27 +25,20 @@ jobs:
           if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" ]; then
             echo "::error::Missing GitHub secret FIREBASE_SERVICE_ACCOUNT_JSON"; exit 1;
           fi
-          printf "%s" "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" > "$HOME/firebase-sa.json"
-          # Quick sanity: must contain client_email and project_id
+          printf "%s" '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > "$HOME/firebase-sa.json"
           grep -q '"client_email"' "$HOME/firebase-sa.json" || { echo "::error::client_email missing in service account JSON"; exit 1; }
           grep -q '"project_id"' "$HOME/firebase-sa.json" || { echo "::error::project_id missing in service account JSON"; exit 1; }
-          echo "Service account JSON looks present."
-
-      - name: Show service account project_id (for certainty)
-        shell: bash
-        run: |
-          python3 - << 'PY'
-import json, os
-path = os.path.expanduser('~/firebase-sa.json')
-data = json.load(open(path))
-print("SERVICE_ACCOUNT.project_id =", data.get("project_id"))
-print("SERVICE_ACCOUNT.client_email =", data.get("client_email"))
-PY
+          echo "Service account JSON present."
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Show service account project_id (sanity)
+        shell: bash
+        run: |
+          node -e "const fs=require('fs');const p=process.env.HOME+'/firebase-sa.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));console.log('SERVICE_ACCOUNT.project_id =', j.project_id);console.log('SERVICE_ACCOUNT.client_email =', j.client_email);"
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
@@ -62,13 +55,6 @@ PY
         run: |
           echo "Listing Hosting sites for project: $TARGET_PROJECT"
           firebase hosting:sites:list --project "$TARGET_PROJECT" --json || true
-
-      - name: Diagnose projects visibility (optional)
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.HOME }}/firebase-sa.json
-        run: |
-          echo "Showing known projects..."
-          firebase projects:list --json || true
 
       - name: Deploy to Firebase Hosting (debug)
         env:
