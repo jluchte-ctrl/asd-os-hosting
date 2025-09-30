@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "gen-lang-client-0814041184",
+    "site": "asd-os-demo",
     "public": "public",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [{ "source": "**", "destination": "/index.html" }]
