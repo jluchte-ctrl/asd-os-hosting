@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ASD-OS • Firebase Auth Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>body{font-family:system-ui,Arial,sans-serif;max-width:720px;margin:3rem auto;padding:0 1rem}button{padding:.6rem 1rem}</style>
+</head>
+<body>
+  <h1>ASD-OS • Google Sign-in</h1>
+  <button id="googleBtn">Sign in with Google</button>
+  <pre id="out"></pre>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+    // 🔴 Replace with your config from Project settings → Your apps → Web → Config
+    const firebaseConfig = {
+      apiKey: "AIza...YOUR_KEY...",
+      authDomain: "asd-os-demo.firebaseapp.com",
+      projectId: "asd-os-demo",
+      storageBucket: "asd-os-demo.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdef123456",
+      measurementId: "G-ABC123XYZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const out = document.getElementById("out");
+    document.getElementById("googleBtn").onclick = async () => {
+      try {
+        const res = await signInWithPopup(auth, provider);
+        out.textContent = JSON.stringify(
+          { uid: res.user.uid, email: res.user.email, projectId: app.options.projectId },
+          null, 2
+        );
+      } catch (e) {
+        out.textContent = "Sign-in error: " + (e?.message || e);
+      }
+    };
+  </script>
+</body>
+</html>
