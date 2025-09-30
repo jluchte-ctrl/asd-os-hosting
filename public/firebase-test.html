@@ -1,19 +1,67 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>ASD-OS • Firebase Auth Test</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>body{font-family:system-ui,Arial,sans-serif;max-width:720px;margin:3rem auto;padding:0 1rem}button{padding:.6rem 1rem}</style>
+  <meta charset="utf-8" />
+  <title>ASD-OS • Sign-in</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --mx:720px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#f7f7f9; }
+    header { background:#111827; color:#fff; padding: 16px 20px; }
+    main { max-width: var(--mx); margin: 32px auto; padding: 0 16px; }
+    .card { background:#fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.06); padding: 20px; }
+    .row { display:flex; gap:16px; align-items:center; }
+    .btn { appearance:none; border:0; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:600; }
+    .btn.primary { background:#111827; color:#fff; }
+    .btn.ghost { background:#f1f5f9; }
+    .muted { color:#64748b; }
+    img.avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; background:#e5e7eb; }
+    pre { background:#0b1020; color:#d1e7ff; padding:12px; border-radius:8px; overflow:auto; }
+    a { color:#0f766e; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+  </style>
 </head>
 <body>
-  <h1>ASD-OS • Google Sign-in</h1>
-  <button id="googleBtn">Sign in with Google</button>
-  <pre id="out"></pre>
+  <header>
+    <div style="max-width: var(--mx); margin: 0 auto; display:flex; justify-content:space-between; align-items:center;">
+      <strong>ASD-OS</strong>
+      <nav><a href="/" style="color:#a7f3d0">Home</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Signed-out view -->
+    <section id="signedOut" class="card">
+      <h2>Welcome</h2>
+      <p class="muted">Sign in to access your StrategyOS workspace.</p>
+      <button id="googleBtn" class="btn primary">Sign in with Google</button>
+    </section>
+
+    <!-- Signed-in view -->
+    <section id="signedIn" class="card" style="display:none">
+      <div class="row">
+        <img id="avatar" class="avatar" alt="avatar" />
+        <div>
+          <div id="welcome" style="font-size:1.1rem; font-weight:700;"></div>
+          <div id="email" class="muted"></div>
+        </div>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:8px;">
+        <button id="signOutBtn" class="btn ghost">Sign out</button>
+        <a class="btn primary" href="/">Go to Dashboard</a>
+      </div>
+
+      <details style="margin-top:16px;">
+        <summary>Debug: show user JSON</summary>
+        <pre id="out"></pre>
+      </details>
+    </section>
+  </main>
 
   <script type="module">
+    // Firebase CDN SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
     // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -30,18 +78,52 @@ const firebaseConfig = {
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    // UI elements
+    const signedOut = document.getElementById("signedOut");
+    const signedIn  = document.getElementById("signedIn");
+    const googleBtn = document.getElementById("googleBtn");
+    const signOutBtn = document.getElementById("signOutBtn");
+    const welcome = document.getElementById("welcome");
+    const email = document.getElementById("email");
+    const avatar = document.getElementById("avatar");
     const out = document.getElementById("out");
-    document.getElementById("googleBtn").onclick = async () => {
+
+    // Sign in
+    googleBtn?.addEventListener("click", async () => {
       try {
-        const res = await signInWithPopup(auth, provider);
-        out.textContent = JSON.stringify(
-          { uid: res.user.uid, email: res.user.email, projectId: app.options.projectId },
-          null, 2
-        );
+        await signInWithPopup(auth, provider);
+        // onAuthStateChanged will handle the UI swap
       } catch (e) {
-        out.textContent = "Sign-in error: " + (e?.message || e);
+        alert("Sign-in error: " + (e?.message || e));
+        console.error(e);
       }
-    };
+    });
+
+    // Sign out
+    signOutBtn?.addEventListener("click", async () => {
+      await signOut(auth);
+    });
+
+    // React to auth state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Show signed-in UI
+        signedOut.style.display = "none";
+        signedIn.style.display = "block";
+
+        const name = user.displayName || "Signed in";
+        welcome.textContent = `Welcome, ${name}!`;
+        email.textContent = user.email || "";
+        avatar.src = user.photoURL || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23e5e7eb'/></svg>";
+        out.textContent = JSON.stringify({
+          uid: user.uid, email: user.email, name: user.displayName, photoURL: user.photoURL, projectId: app.options.projectId
+        }, null, 2);
+      } else {
+        // Show signed-out UI
+        signedIn.style.display = "none";
+        signedOut.style.display = "block";
+      }
+    });
   </script>
 </body>
 </html>
