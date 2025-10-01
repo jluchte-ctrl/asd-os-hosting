@@ -21,8 +21,11 @@ jobs:
           firebase --version
           firebase projects:list
           
-      - name: Deploy to Firebase Hosting
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: cd $GITHUB_WORKSPACE
-    firebase deploy --only hosting --project gen-lang-client-0814041184
+    - name: Write service account key to file
+  run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" > firebase-key.json
+
+- name: Set GOOGLE_APPLICATION_CREDENTIALS
+  run: echo "GOOGLE_APPLICATION_CREDENTIALS=firebase-key.json" >> $GITHUB_ENV
+
+- name: Deploy to Firebase Hosting
+  run: firebase deploy --only hosting --project gen-lang-client-0814041184
