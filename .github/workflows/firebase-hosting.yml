@@ -1,4 +1,4 @@
-name: Firebase Debug
+name: Deploy to Firebase Hosting
 
 on:
   push:
@@ -6,15 +6,16 @@ on:
       - main
 
 jobs:
-  debug:
+  build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Dump Firebase Service Account JSON (Redacted)
-        run: |
-          echo "=== START OF SECRET ==="
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' | jq '. | {client_email, project_id, type}'
-          echo "=== END OF SECRET ==="
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          projectId: gen-lang-client-0814041184
