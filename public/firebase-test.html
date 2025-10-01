@@ -24,7 +24,7 @@
   <header>
     <div style="max-width: var(--mx); margin: 0 auto;">
       <strong>ASD-OS</strong>
-      <!-- REMOVED all links to avoid navigation loops -->
+      <!-- intentionally no links to avoid any navigation -->
     </div>
   </header>
 
@@ -58,11 +58,7 @@
     <!-- Inline Dashboard (same page; no navigation) -->
     <section id="dashboard" class="card" hidden>
       <h2>Your Dashboard</h2>
-      <p class="muted">You’re signed in. Staying right here avoids any redirect or race-condition loops.</p>
-      <ul>
-        <li>Later, we’ll read <code>users/{uid}/private</code> here.</li>
-        <li>AI suggestions will show from <code>users/{uid}/suggestions</code>.</li>
-      </ul>
+      <p class="muted">You’re signed in on <code id="origin"></code>. No redirects, no loops.</p>
     </section>
   </main>
 
@@ -70,9 +66,80 @@
     // Firebase CDN SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
     import {
-      getAuth, GoogleAuthProvider,
-      signInWithPopup, onAuthStateChanged, signOut,
+      getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut,
       setPersistence, browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
     // Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCe64LxHzYt_XP0UpYPwRek6JH5QVWEkrg",
+      authDomain: "gen-lang-client-0814041184.firebaseapp.com",
+      projectId: "gen-lang-client-0814041184",
+      storageBucket: "gen-lang-client-0814041184.firebasestorage.app",
+      messagingSenderId: "519555891397",
+      appId: "1:519555891397:web:034bafe8be45e6832f30ac",
+      measurementId: "G-RR579N5FRC"
+    };
+
+    // Init
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // Persist session
+    await setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+    // Elements
+    const signedOut = document.getElementById("signedOut");
+    const signedIn  = document.getElementById("signedIn");
+    const googleBtn = document.getElementById("googleBtn");
+    const signOutBtn = document.getElementById("signOutBtn");
+    const welcome = document.getElementById("welcome");
+    const email = document.getElementById("email");
+    const avatar = document.getElementById("avatar");
+    const out = document.getElementById("out");
+    const dashboard = document.getElementById("dashboard");
+    const originEl = document.getElementById("origin");
+
+    // Belt-and-suspenders: disable *all* anchor navigation on this page (if any)
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest("a");
+      if (a) { e.preventDefault(); }
+    }, true);
+
+    // Set origin label
+    originEl.textContent = location.origin;
+
+    // Sign in (popup)
+    googleBtn?.addEventListener("click", async () => {
+      try { await signInWithPopup(auth, provider); }
+      catch (e) { alert("Sign-in error: " + (e?.message || e)); console.error(e); }
+    });
+
+    // Sign out
+    signOutBtn?.addEventListener("click", async () => { await signOut(auth); });
+
+    // Auth state → toggle views (and reveal dashboard)
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        signedOut.style.display = "none";
+        signedIn.style.display = "block";
+        dashboard.hidden = false;
+
+        const name = user.displayName || "Signed in";
+        welcome.textContent = `Welcome, ${name}!`;
+        email.textContent = user.email || "";
+        avatar.src = user.photoURL || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23e5e7eb'/></svg>";
+        out.textContent = JSON.stringify({
+          uid: user.uid, email: user.email, name: user.displayName,
+          photoURL: user.photoURL, projectId: app.options.projectId
+        }, null, 2);
+      } else {
+        signedIn.style.display = "none";
+        signedOut.style.display = "block";
+        dashboard.hidden = true;
+      }
+    });
+  </script>
+</body>
+</html>
