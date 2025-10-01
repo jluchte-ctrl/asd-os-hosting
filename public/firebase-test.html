@@ -19,6 +19,7 @@
     pre { background:#0b1020; color:#d1e7ff; padding:12px; border-radius:8px; overflow:auto; }
     a { color:#0f766e; text-decoration:none; }
     a:hover { text-decoration:underline; }
+    #dashboard[hidden] { display:none; }
   </style>
 </head>
 <body>
@@ -48,7 +49,7 @@
       </div>
       <div style="margin-top:16px; display:flex; gap:8px;">
         <button id="signOutBtn" class="btn ghost">Sign out</button>
-        <a class="btn primary" href="/">Go to Dashboard</a>
+        <button id="showDash" class="btn primary">Go to Dashboard</button>
       </div>
 
       <details style="margin-top:16px;">
@@ -56,74 +57,19 @@
         <pre id="out"></pre>
       </details>
     </section>
+
+    <!-- Inline Dashboard (revealed after sign-in) -->
+    <section id="dashboard" class="card" hidden>
+      <h2>Your Dashboard</h2>
+      <p class="muted">You’re signed in. This is the simplest possible dashboard — no page hops, no auth race conditions.</p>
+      <ul>
+        <li>Next step: connect reads to <code>users/{uid}/private</code> when you’re ready.</li>
+        <li>AI suggestions will live at <code>users/{uid}/suggestions</code>.</li>
+      </ul>
+    </section>
   </main>
 
   <script type="module">
     // Firebase CDN SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCe64LxHzYt_XP0UpYPwRek6JH5QVWEkrg",
-  authDomain: "gen-lang-client-0814041184.firebaseapp.com",
-  projectId: "gen-lang-client-0814041184",
-  storageBucket: "gen-lang-client-0814041184.firebasestorage.app",
-  messagingSenderId: "519555891397",
-  appId: "1:519555891397:web:034bafe8be45e6832f30ac",
-  measurementId: "G-RR579N5FRC"
-};
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    // UI elements
-    const signedOut = document.getElementById("signedOut");
-    const signedIn  = document.getElementById("signedIn");
-    const googleBtn = document.getElementById("googleBtn");
-    const signOutBtn = document.getElementById("signOutBtn");
-    const welcome = document.getElementById("welcome");
-    const email = document.getElementById("email");
-    const avatar = document.getElementById("avatar");
-    const out = document.getElementById("out");
-
-    // Sign in
-    googleBtn?.addEventListener("click", async () => {
-      try {
-        await signInWithPopup(auth, provider);
-        // onAuthStateChanged will handle the UI swap
-      } catch (e) {
-        alert("Sign-in error: " + (e?.message || e));
-        console.error(e);
-      }
-    });
-
-    // Sign out
-    signOutBtn?.addEventListener("click", async () => {
-      await signOut(auth);
-    });
-
-    // React to auth state
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Show signed-in UI
-        signedOut.style.display = "none";
-        signedIn.style.display = "block";
-
-        const name = user.displayName || "Signed in";
-        welcome.textContent = `Welcome, ${name}!`;
-        email.textContent = user.email || "";
-        avatar.src = user.photoURL || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23e5e7eb'/></svg>";
-        out.textContent = JSON.stringify({
-          uid: user.uid, email: user.email, name: user.displayName, photoURL: user.photoURL, projectId: app.options.projectId
-        }, null, 2);
-      } else {
-        // Show signed-out UI
-        signedIn.style.display = "none";
-        signedOut.style.display = "block";
-      }
-    });
-  </script>
-</body>
-</html>
+    import { getAuth, GoogleAuthProvider, signInWit
