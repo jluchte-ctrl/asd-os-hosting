@@ -15,17 +15,18 @@ jobs:
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
-      
+
       - name: Firebase Debug Info
         run: |
           firebase --version
           firebase projects:list
-          
-    - name: Write service account key to file
-  run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" > firebase-key.json
 
-- name: Set GOOGLE_APPLICATION_CREDENTIALS
-  run: echo "GOOGLE_APPLICATION_CREDENTIALS=firebase-key.json" >> $GITHUB_ENV
+      - name: Write service account key to file
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > firebase-key.json
 
-- name: Deploy to Firebase Hosting
-  run: firebase deploy --only hosting --project gen-lang-client-0814041184
+      - name: Set GOOGLE_APPLICATION_CREDENTIALS
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=firebase-key.json" >> $GITHUB_ENV
+
+      - name: Deploy to Firebase Hosting
+        run: firebase deploy --only hosting --project gen-lang-client-0814041184
+
