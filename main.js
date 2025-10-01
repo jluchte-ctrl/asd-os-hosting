@@ -1,6 +1,6 @@
 // main.js
 
-import app from './firebaseconfig';
+import app from './firebaseconfig.js';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 // Initialize Firebase Auth
