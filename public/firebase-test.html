@@ -17,16 +17,14 @@
     .muted { color:#64748b; }
     img.avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; background:#e5e7eb; }
     pre { background:#0b1020; color:#d1e7ff; padding:12px; border-radius:8px; overflow:auto; }
-    a { color:#0f766e; text-decoration:none; }
-    a:hover { text-decoration:underline; }
     #dashboard[hidden] { display:none; }
   </style>
 </head>
 <body>
   <header>
-    <div style="max-width: var(--mx); margin: 0 auto; display:flex; justify-content:space-between; align-items:center;">
+    <div style="max-width: var(--mx); margin: 0 auto;">
       <strong>ASD-OS</strong>
-      <nav><a href="/" style="color:#a7f3d0">Home</a></nav>
+      <!-- REMOVED all links to avoid navigation loops -->
     </div>
   </header>
 
@@ -47,9 +45,8 @@
           <div id="email" class="muted"></div>
         </div>
       </div>
-      <div style="margin-top:16px; display:flex; gap:8px;">
+      <div style="margin-top:16px;">
         <button id="signOutBtn" class="btn ghost">Sign out</button>
-        <button id="showDash" class="btn primary">Go to Dashboard</button>
       </div>
 
       <details style="margin-top:16px;">
@@ -58,13 +55,13 @@
       </details>
     </section>
 
-    <!-- Inline Dashboard (revealed after sign-in) -->
+    <!-- Inline Dashboard (same page; no navigation) -->
     <section id="dashboard" class="card" hidden>
       <h2>Your Dashboard</h2>
-      <p class="muted">You’re signed in. This is the simplest possible dashboard — no page hops, no auth race conditions.</p>
+      <p class="muted">You’re signed in. Staying right here avoids any redirect or race-condition loops.</p>
       <ul>
-        <li>Next step: connect reads to <code>users/{uid}/private</code> when you’re ready.</li>
-        <li>AI suggestions will live at <code>users/{uid}/suggestions</code>.</li>
+        <li>Later, we’ll read <code>users/{uid}/private</code> here.</li>
+        <li>AI suggestions will show from <code>users/{uid}/suggestions</code>.</li>
       </ul>
     </section>
   </main>
@@ -72,4 +69,10 @@
   <script type="module">
     // Firebase CDN SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWit
+    import {
+      getAuth, GoogleAuthProvider,
+      signInWithPopup, onAuthStateChanged, signOut,
+      setPersistence, browserLocalPersistence
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+    // Config
