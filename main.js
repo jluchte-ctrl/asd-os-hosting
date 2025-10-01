@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstati
 // ✅ Debug log to confirm config at runtime
 const firebaseConfig = {
   apiKey: "AIzaSyB3ab9_jZiAYB1-ql_6IX2XsDVXD2UpCv8",
-  authDomain: "gen-lang-client-0814041184.firebaseapp.com",
+  authDomain: "gen-lang-client-0814041184.web.app",
   projectId: "gen-lang-client-0814041184",
   storageBucket: "gen-lang-client-0814041184.appspot.com",
   messagingSenderId: "519555891397",
